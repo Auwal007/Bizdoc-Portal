@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Your Business Roadmap — BizDoc</title>
+<link rel="stylesheet" href="/assets/brand.css" />
+<style>
+  .qcard{padding:24px 26px; margin-bottom:16px;}
+  .qnum{color:var(--green); font-weight:700; font-size:13px; margin-top:2px;}
+  .qtitle{font-size:15.5px; font-weight:600; line-height:1.5;}
+  .req{color:var(--err); margin-left:4px;}
+  .examples{background:var(--milk); border:1px solid var(--line); border-radius:10px; padding:12px; margin-top:12px;}
+  .examples .h{font-size:11.5px; font-weight:700; color:var(--grey); letter-spacing:.06em;}
+  .ex-row{display:flex; align-items:center; gap:8px; font-size:12.5px; margin-top:6px;}
+  .ex-row .arrow{color:var(--green);}
+  .ex-pill{display:inline-block; background:#fff; border:1px solid var(--line); border-radius:8px; padding:4px 10px; font-size:12px; margin:3px 4px 0 0;}
+  .checks{display:grid; gap:8px; margin-top:14px;}
+  .checks.grid{grid-template-columns:1fr;}
+  @media(min-width:560px){ .checks.grid{grid-template-columns:1fr 1fr;} }
+  .chk{display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--line); border-radius:10px; background:#fff; cursor:pointer; font-size:14px; text-align:left; line-height:1.4;}
+  .chk.on{background:var(--green-soft); border-color:var(--green);}
+  .box{width:18px; height:18px; border:1.5px solid var(--grey); border-radius:4px; display:flex; align-items:center; justify-content:center; flex:none;}
+  .chk.on .box{background:var(--green); border-color:var(--green);}
+  .box svg{display:none;} .chk.on .box svg{display:block;}
+  .row2{display:grid; gap:14px;}
+  .errtext{color:var(--err); font-size:12.5px; font-weight:500; margin-top:4px;}
+  .qcard.bad{border-color:#E3B7B0;}
+  .formhead{padding:28px 30px; margin-bottom:16px; border-top:4px solid var(--green);}
+  .formhead h2{font-size:26px; font-weight:700; letter-spacing:-.02em; margin:0;}
+</style>
+</head>
+<body>
+<div class="accent"></div>
+<header class="bd"><div class="wrap" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+  <div>
+    <div class="eyebrow">HAMZURY BUSINESS INSTITUTE</div>
+    <div class="brandrow"><h1>BizDoc</h1><span class="tag">Compliance that protects.</span></div>
+  </div>
+</div></header>
+
+<main class="wrap fade" style="padding-top:34px; padding-bottom:24px;">
+  <div id="form">
+    <div class="card formhead">
+      <h2>Your Business Roadmap</h2>
+      <p class="muted" style="margin:8px 0 0; font-size:15px;">No friction. Just tell us where you are.</p>
+    </div>
+
+    <!-- Q1 -->
+    <div class="card qcard"><div style="display:flex; gap:10px;"><span class="qnum">1.</span><div style="flex:1;">
+      <div class="qtitle">Is your business service, product, or both?</div>
+      <select id="q1" style="margin-top:14px;">
+        <option value="" selected disabled>Choose one</option>
+        <option>Service</option><option>Product</option><option>Both</option><option>Not sure</option>
+      </select>
+    </div></div></div>
+
+    <!-- Q2 -->
+    <div class="card qcard"><div style="display:flex; gap:10px;"><span class="qnum">2.</span><div style="flex:1;">
+      <div class="qtitle">Are you already in business or still at idea stage?</div>
+      <select id="q2" style="margin-top:14px;">
+        <option value="" selected disabled>Choose one</option>
+        <option>Already in business (registered or not)</option>
+        <option>Idea stage (nothing yet)</option>
+        <option>Registered but not trading</option>
+        <option>Trading but not registered</option>
+      </select>
+    </div></div></div>
+
+    <!-- Q3 -->
+    <div class="card qcard"><div style="display:flex; gap:10px;"><span class="qnum">3.</span><div style="flex:1;">
+      <div class="qtitle">Do you need renewal, modification, or upgrade?</div>
+      <div class="examples">
+        <div class="h">EXAMPLES</div>
+        <div class="ex-row"><span class="muted">"My annual return expired last year"</span><span class="arrow">→</span><b style="color:var(--green)">Renewal</b></div>
+        <div class="ex-row"><span class="muted">"I want to change my company address"</span><span class="arrow">→</span><b style="color:var(--green)">Modification</b></div>
+        <div class="ex-row"><span class="muted">"I am Business Name but want to become Ltd"</span><span class="arrow">→</span><b style="color:var(--green)">Upgrade</b></div>
+      </div>
+      <div class="checks" data-group="q3"></div>
+    </div></div></div>
+
+    <!-- Q4 -->
+    <div class="card qcard" id="q4card"><div style="display:flex; gap:10px;"><span class="qnum">4.</span><div style="flex:1;">
+      <div class="qtitle">Which problem do you want us to solve for you?<span class="req">*</span></div>
+      <div class="errtext" id="q4err" style="display:none;">Required</div>
+      <div class="examples">
+        <div class="h">EXAMPLES</div>
+        <div style="margin-top:6px;">
+          <span class="ex-pill">"I cannot open a bank account"</span>
+          <span class="ex-pill">"I want to bid for government contracts"</span>
+          <span class="ex-pill">"FIRS sent me a penalty letter"</span>
+          <span class="ex-pill">"I have nothing registered at all"</span>
+          <span class="ex-pill">"My documents are expired"</span>
+        </div>
+      </div>
+      <textarea id="q4" placeholder="Tell us in your own words…" style="margin-top:14px;"></textarea>
+    </div></div></div>
+
+    <!-- Q5 -->
+    <div class="card qcard"><div style="display:flex; gap:10px;"><span class="qnum">5.</span><div style="flex:1;">
+      <div class="qtitle">Would you like to know the list of documents your business needs for any of these?</div>
+      <div class="checks grid" data-group="q5"></div>
+    </div></div></div>
+
+    <!-- Q6 -->
+    <div class="card qcard"><div style="display:flex; gap:10px;"><span class="qnum">6.</span><div style="flex:1;">
+      <div class="qtitle">Tax authorities are putting penalties on people. Would you like to know how it works and how to save yourself?</div>
+      <select id="q6" style="margin-top:14px;">
+        <option value="" selected disabled>Choose one</option>
+        <option>Yes, please guide me</option><option>I already know</option><option>Not interested</option>
+      </select>
+    </div></div></div>
+
+    <!-- Q7 -->
+    <div class="card qcard"><div style="display:flex; gap:10px;"><span class="qnum">7.</span><div style="flex:1;">
+      <div class="qtitle">There are documents and templates businesses need to scale. Agreements. NDAs. Business plans.</div>
+      <div class="checks grid" data-group="q7"></div>
+    </div></div></div>
+
+    <!-- Q8 -->
+    <div class="card qcard"><div style="display:flex; gap:10px;"><span class="qnum">8.</span><div style="flex:1;">
+      <div class="qtitle">Which of these would you like us to help you process?</div>
+      <div class="checks" data-group="q8"></div>
+    </div></div></div>
+
+    <!-- Q9 -->
+    <div class="card qcard" id="namecard"><div style="display:flex; gap:10px;"><span class="qnum">9.</span><div style="flex:1;">
+      <div class="qtitle">What is your name?<span class="req">*</span></div>
+      <div class="errtext" id="nameerr" style="display:none;">Required</div>
+      <input id="name" placeholder="Your full name" style="margin-top:14px;" />
+    </div></div></div>
+
+    <!-- Q10 -->
+    <div class="card qcard" id="phonecard"><div style="display:flex; gap:10px;"><span class="qnum">10.</span><div style="flex:1;">
+      <div class="qtitle">What is your phone number?<span class="req">*</span></div>
+      <div class="errtext" id="phoneerr" style="display:none;">Required</div>
+      <input id="phone" placeholder="+234 …" style="margin-top:14px;" />
+    </div></div></div>
+
+    <!-- honeypot (hidden from humans) -->
+    <input id="website" name="website" tabindex="-1" autocomplete="off" style="position:absolute; left:-9999px;" />
+
+    <button class="btn btn-green" id="submit" style="margin-top:4px;">Submit</button>
+    <p class="muted" style="text-align:center; font-size:12px; margin-top:12px;">Your information is kept confidential.</p>
+  </div>
+
+  <div id="done" style="display:none; text-align:center; padding:80px 0;" class="fade">
+    <div style="width:72px; height:72px; border-radius:50%; background:var(--green-soft); display:flex; align-items:center; justify-content:center; margin:0 auto 24px;">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#1B4D3E" stroke-width="2.6"><path d="M20 6L9 17l-5-5"/></svg>
+    </div>
+    <h2 style="font-size:22px; font-weight:700; line-height:1.4; margin:0 auto; max-width:520px;">✅ Thank you. We will send you a clear guide within 2 hours.</h2>
+    <button class="btn btn-ghost" style="margin-top:28px;" onclick="location.reload()">Submit another response</button>
+  </div>
+</main>
+
+<footer class="bd"><b>Built to Last.</b> &nbsp;·&nbsp; BizDoc by Hamzury Business Institute</footer>
+
+<script>
+const CHECK = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>`;
+const OPTS = {
+  q3:["Renewal (Annual returns, TCC, expiring certificates)","Modification (Change of directors, address, share capital)","Upgrade (From Business Name to Limited Liability)","None of the above"],
+  q5:["🚚 To transport goods","📦 To export products","🏭 To process or manufacture","🛒 To trade or sell minerals","⛏️ To mine","🎯 To bid for government contracts","🏦 To open a corporate bank account"],
+  q7:["📄 Non-Disclosure Agreement (NDA)","📄 Service Agreement","📄 Employment Contract","📄 Business Plan","📄 Operating Agreement","📄 Partnership Agreement","📄 Shareholders Agreement","📄 Privacy Policy","📄 Terms & Conditions"],
+  q8:["📋 Single Document (CAC, TIN, SCUML only)","📦 Industry Package (everything your industry needs)","📊 Management & Compliance (watch your filings monthly)","📄 Template (NDA, contract, agreement download)"],
+};
+const selected = { q3:new Set(), q5:new Set(), q7:new Set(), q8:new Set() };
+
+for (const g of Object.keys(OPTS)) {
+  const host = document.querySelector(`[data-group="${g}"]`);
+  OPTS[g].forEach(opt => {
+    const b = document.createElement("button");
+    b.className = "chk"; b.type = "button";
+    b.innerHTML = `<span class="box">${CHECK}</span><span>${opt}</span>`;
+    b.onclick = () => {
+      if (selected[g].has(opt)) { selected[g].delete(opt); b.classList.remove("on"); }
+      else { selected[g].add(opt); b.classList.add("on"); }
+    };
+    host.appendChild(b);
+  });
+}
+
+function flagErr(card, errId, bad){
+  document.getElementById(card).classList.toggle("bad", bad);
+  document.getElementById(errId).style.display = bad ? "block" : "none";
+}
+
+document.getElementById("submit").onclick = async () => {
+  const q4 = document.getElementById("q4").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  let bad = false, firstBad = null;
+  [["q4card","q4err",!q4],["namecard","nameerr",!name],["phonecard","phoneerr",!phone]].forEach(([c,e,isBad])=>{
+    flagErr(c,e,isBad); if(isBad){ bad=true; if(!firstBad) firstBad=c; }
+  });
+  if (bad) { document.getElementById(firstBad).scrollIntoView({behavior:"smooth",block:"center"}); return; }
+
+  const payload = {
+    q1: document.getElementById("q1").value,
+    q2: document.getElementById("q2").value,
+    q3: [...selected.q3], q4,
+    q5: [...selected.q5],
+    q6: document.getElementById("q6").value,
+    q7: [...selected.q7], q8: [...selected.q8],
+    name, phone, website: document.getElementById("website").value,
+  };
+  const btn = document.getElementById("submit");
+  btn.disabled = true; btn.textContent = "Submitting…";
+  try {
+    const r = await fetch("/api/submit", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+    if (!r.ok) throw new Error((await r.json()).error || "Failed");
+    document.getElementById("form").style.display = "none";
+    document.getElementById("done").style.display = "block";
+    window.scrollTo({ top:0, behavior:"smooth" });
+  } catch (e) {
+    btn.disabled = false; btn.textContent = "Submit";
+    alert(e.message || "Something went wrong. Please try again.");
+  }
+};
+</script>
+</body>
+</html>

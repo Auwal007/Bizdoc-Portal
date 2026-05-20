@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Team Login — BizDoc</title>
+<link rel="stylesheet" href="/assets/brand.css" />
+</head>
+<body>
+<div class="accent"></div>
+<main style="display:flex; align-items:center; justify-content:center; min-height:88vh; padding:24px;">
+  <div class="card fade" style="width:100%; max-width:380px; padding:34px 30px; border-top:4px solid var(--green);">
+    <div class="eyebrow">HAMZURY BUSINESS INSTITUTE</div>
+    <h1 style="font-size:26px; font-weight:700; letter-spacing:-.02em; margin:6px 0 2px;">BizDoc Dashboard</h1>
+    <p class="muted" style="margin:0 0 22px; font-size:14px;">Team access only. Enter your password.</p>
+
+    <label style="font-size:13px; font-weight:600;">Password</label>
+    <input id="pw" type="password" placeholder="••••••••" style="margin-top:8px;" autofocus />
+    <div id="err" style="color:var(--err); font-size:13px; margin-top:8px; display:none;">Incorrect password.</div>
+
+    <button class="btn btn-green" id="go" style="margin-top:18px;">Sign in</button>
+  </div>
+</main>
+<footer class="bd"><b>Built to Last.</b> &nbsp;·&nbsp; BizDoc by Hamzury Business Institute</footer>
+<script>
+const go = async () => {
+  const pw = document.getElementById("pw").value;
+  document.getElementById("err").style.display = "none";
+  const btn = document.getElementById("go"); btn.disabled = true; btn.textContent = "Signing in…";
+  try {
+    const r = await fetch("/api/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ password: pw }) });
+    if (r.ok) { location.href = "/dashboard"; return; }
+    throw new Error();
+  } catch { document.getElementById("err").style.display = "block"; btn.disabled = false; btn.textContent = "Sign in"; }
+};
+document.getElementById("go").onclick = go;
+document.getElementById("pw").addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+</script>
+</body>
+</html>

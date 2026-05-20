@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Client Responses — BizDoc</title>
+<link rel="stylesheet" href="/assets/brand.css" />
+<style>
+  .stats{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:26px;}
+  @media(min-width:680px){ .stats{grid-template-columns:repeat(4,1fr);} }
+  .stat{padding:16px; cursor:pointer; text-align:left;}
+  .stat .lab{font-size:12.5px; font-weight:600; color:var(--grey); display:flex; justify-content:space-between; align-items:center;}
+  .stat .num{font-size:28px; font-weight:700; margin-top:6px;}
+  .panel{padding:20px; margin-bottom:26px;}
+  .panel h3{font-size:14px; font-weight:600; margin:0 0 14px;}
+  .bar-row{display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:13px;}
+  .bar-row .name{width:150px; flex:none;}
+  .bar-track{flex:1; height:18px; background:var(--milk); border-radius:6px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--green); border-radius:6px;}
+  .bar-row .v{width:26px; text-align:right; font-weight:600;}
+  .toolbar{display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;}
+  .search{display:flex; align-items:center; gap:8px; padding:10px 14px; background:#fff; border:1px solid var(--line); border-radius:10px; flex:1; min-width:220px;}
+  .search input{border:none; box-shadow:none; padding:0;}
+  .row{display:flex; align-items:center; gap:16px; padding:16px; cursor:pointer; margin-bottom:10px; text-align:left; width:100%; background:var(--card); border:1px solid var(--line); border-radius:12px;}
+  .row:hover{box-shadow:0 1px 6px rgba(0,0,0,.05);}
+  .pill{padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; white-space:nowrap;}
+  .drawer-bg{position:fixed; inset:0; background:rgba(28,28,30,.35); display:none; justify-content:flex-end; z-index:50;}
+  .drawer{height:100%; width:100%; max-width:440px; background:var(--milk); overflow-y:auto;}
+  .drawer .body{padding:24px;}
+  .seg{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .seg button{padding:9px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; background:#fff; border:1px solid var(--line); color:var(--ink);}
+  .qblock{margin-top:16px; padding-top:16px; border-top:1px solid var(--line);}
+  .qblock .h{font-size:11.5px; font-weight:700; color:var(--grey); letter-spacing:.04em;}
+  .chip{display:inline-block; background:var(--green-soft); color:var(--green); border-radius:8px; padding:4px 10px; font-size:12.5px; font-weight:500; margin:6px 6px 0 0;}
+</style>
+</head>
+<body>
+<div class="accent"></div>
+<header class="bd"><div class="wrap-wide" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+  <div>
+    <div class="eyebrow">HAMZURY BUSINESS INSTITUTE</div>
+    <div class="brandrow"><h1>BizDoc</h1><span class="tag">Client Responses</span></div>
+  </div>
+  <div style="display:flex; gap:8px;">
+    <button class="btn btn-ghost" onclick="load()">Refresh</button>
+    <button class="btn btn-ghost" onclick="logout()">Sign out</button>
+  </div>
+</div></header>
+
+<main class="wrap-wide fade" style="padding-top:28px;">
+  <div id="empty" style="display:none; text-align:center; padding:80px 0;" class="muted">
+    <h2 style="font-size:20px; font-weight:700; color:var(--ink);">No responses yet</h2>
+    <p>Submissions from “Your Business Roadmap” will appear here.</p>
+  </div>
+
+  <div id="content" style="display:none;">
+    <div style="margin-bottom:22px;">
+      <h2 style="font-size:22px; font-weight:700; letter-spacing:-.01em; margin:0;">Client Responses</h2>
+      <p class="muted" id="total" style="margin:4px 0 0; font-size:14px;"></p>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="card panel" id="chartPanel" style="display:none;">
+      <h3>What clients want processed</h3>
+      <div id="chart"></div>
+    </div>
+    <div class="toolbar">
+      <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="q" placeholder="Search name, phone, problem…" /></div>
+      <button class="btn btn-ghost" id="clearFilter" style="display:none;"></button>
+    </div>
+    <div id="list"></div>
+  </div>
+</main>
+
+<div class="drawer-bg" id="drawerBg"><div class="drawer" id="drawer" onclick="event.stopPropagation()">
+  <div class="accent"></div><div class="body" id="drawerBody"></div>
+</div></div>
+
+<footer class="bd"><b>Built to Last.</b> &nbsp;·&nbsp; BizDoc by Hamzury Business Institute</footer>
+
+<script>
+const STATUSES = {
+  "New":         {color:"#1B4D3E", bg:"#D4E5DB"},
+  "In Review":   {color:"#B08800", bg:"#FAF3DA"},
+  "In Progress": {color:"#2C6E9E", bg:"#DCEAF3"},
+  "Completed":   {color:"#1B4D3E", bg:"#C7E0CF"},
+};
+const Q_META = [
+  ["q1","Service, product, or both?","single"],
+  ["q2","Business or idea stage?","single"],
+  ["q3","Renewal / modification / upgrade","multi"],
+  ["q4","Problem to solve","text"],
+  ["q5","Documents needed for…","multi"],
+  ["q6","Tax penalty guidance","single"],
+  ["q7","Templates wanted","multi"],
+  ["q8","What to process","multi"],
+];
+let DATA = [], filter = "All", query = "";
+
+const fmt = (iso) => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+const wa = (p) => "https://wa.me/" + (p||"").replace(/[^0-9]/g,"");
+const esc = (s) => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function load(){
+  const r = await fetch("/api/responses");
+  if (r.status === 401) { location.href = "/login"; return; }
+  DATA = await r.json();
+  render();
+}
+async function logout(){ await fetch("/api/logout",{method:"POST"}); location.href="/login"; }
+
+function counts(){ const c={"New":0,"In Review":0,"In Progress":0,"Completed":0}; DATA.forEach(s=>c[s.status]=(c[s.status]||0)+1); return c; }
+
+function render(){
+  document.getElementById("empty").style.display = DATA.length ? "none":"block";
+  document.getElementById("content").style.display = DATA.length ? "block":"none";
+  if (!DATA.length) return;
+
+  document.getElementById("total").textContent = DATA.length + (DATA.length===1?" total response":" total responses");
+
+  const c = counts();
+  document.getElementById("stats").innerHTML = Object.keys(STATUSES).map(k=>{
+    const m = STATUSES[k], active = filter===k;
+    return `<button class="stat card" style="border-color:${active?m.color:'var(--line)'}" onclick="setFilter('${k}')">
+      <div class="lab"><span>${k}</span></div><div class="num" style="color:${m.color}">${c[k]||0}</div></button>`;
+  }).join("");
+
+  // chart: Q8
+  const m = {};
+  DATA.forEach(s => (s.q8||[]).forEach(v => { const k=v.replace(/^[^\sA-Za-z]+\s*/,"").split(" (")[0]; m[k]=(m[k]||0)+1; }));
+  const rows = Object.entries(m).sort((a,b)=>b[1]-a[1]);
+  const max = Math.max(1, ...rows.map(r=>r[1]));
+  const cp = document.getElementById("chartPanel");
+  cp.style.display = rows.length ? "block":"none";
+  document.getElementById("chart").innerHTML = rows.map(([n,v])=>`
+    <div class="bar-row"><span class="name">${esc(n)}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(v/max*100)}%"></span></span>
+      <span class="v">${v}</span></div>`).join("");
+
+  // filter button
+  const cf = document.getElementById("clearFilter");
+  if (filter!=="All"){ cf.style.display="block"; cf.textContent = filter+"  ✕"; cf.onclick=()=>setFilter("All");
+    cf.style.background=STATUSES[filter].bg; cf.style.color=STATUSES[filter].color; cf.style.border="none"; }
+  else cf.style.display="none";
+
+  // list
+  const list = DATA.filter(s=>{
+    const mq = !query || [s.name,s.phone,s.q4,...(s.q8||[])].join(" ").toLowerCase().includes(query.toLowerCase());
+    const mf = filter==="All" || s.status===filter;
+    return mq && mf;
+  });
+  document.getElementById("list").innerHTML = list.length ? list.map((s,i)=>{
+    const m = STATUSES[s.status]||STATUSES["New"];
+    return `<button class="row" onclick="openDrawer(${DATA.indexOf(s)})">
+      <div style="flex:1; min-width:0;">
+        <div style="font-weight:600; font-size:15px;">${esc(s.name)||"—"} <span class="muted" style="font-weight:400; font-size:13px;">· ${esc(s.phone)}</span></div>
+        <div style="font-size:13px; margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:48ch;">${esc(s.q4)||"—"}</div>
+        <div class="muted" style="font-size:12px; margin-top:5px;">${fmt(s.createdAt)}</div>
+      </div>
+      <span class="pill" style="background:${m.bg}; color:${m.color}">${s.status}</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </button>`;
+  }).join("") : `<div class="muted" style="text-align:center; padding:48px 0;">No matching responses.</div>`;
+}
+
+function setFilter(k){ filter = (filter===k)?"All":k; render(); }
+document.getElementById("q").addEventListener("input", e=>{ query = e.target.value; render(); });
+
+function openDrawer(idx){
+  const s = DATA[idx];
+  const m = STATUSES[s.status]||STATUSES["New"];
+  const qhtml = Q_META.map(([k,label,kind])=>{
+    const v = s[k]; if (!v || (Array.isArray(v)&&!v.length)) return "";
+    const inner = kind==="multi" ? v.map(x=>`<span class="chip">${esc(x)}</span>`).join("")
+      : `<p style="font-size:14px; line-height:1.6; margin:6px 0 0;">${esc(v)}</p>`;
+    return `<div class="qblock"><div class="h">${label.toUpperCase()}</div>${inner}</div>`;
+  }).join("");
+
+  const seg = Object.keys(STATUSES).map(k=>{
+    const mm = STATUSES[k], on = s.status===k;
+    return `<button onclick="setStatus('${s.id}','${k}')" style="${on?`background:${mm.bg}; color:${mm.color}; border-color:${mm.color};`:''}">${k}</button>`;
+  }).join("");
+
+  document.getElementById("drawerBody").innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:22px;">
+      <div><div class="eyebrow" style="font-size:11px; letter-spacing:.18em;">CLIENT RESPONSE</div>
+        <h3 style="font-size:22px; font-weight:700; margin:4px 0 0;">${esc(s.name)||"—"}</h3>
+        <p class="muted" style="font-size:14px; margin:2px 0 0;">${esc(s.phone)}</p></div>
+      <button class="btn btn-ghost" style="padding:6px 10px;" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="h" style="font-size:12px; font-weight:600; color:var(--grey); margin-bottom:8px;">STATUS</div>
+    <div class="seg">${seg}</div>
+    <div class="qblock"><div class="h">SUBMITTED</div><p style="font-size:14px; margin:6px 0 0;">${fmt(s.createdAt)}</p></div>
+    ${qhtml}
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:26px;">
+      <a class="btn" href="tel:${esc(s.phone)}" style="background:#fff; border:1px solid var(--green); color:var(--green); padding:12px; text-align:center; text-decoration:none;">Call</a>
+      <a class="btn btn-green" href="${wa(s.phone)}" target="_blank" rel="noreferrer" style="padding:12px; text-align:center; text-decoration:none;">WhatsApp</a>
+    </div>`;
+  document.getElementById("drawerBg").style.display = "flex";
+}
+function closeDrawer(){ document.getElementById("drawerBg").style.display = "none"; }
+document.getElementById("drawerBg").onclick = closeDrawer;
+
+async function setStatus(id, status){
+  const r = await fetch(`/api/responses/${id}/status`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({status}) });
+  if (r.ok){ const s = DATA.find(x=>x.id===id); if (s) s.status = status; render(); openDrawer(DATA.indexOf(DATA.find(x=>x.id===id))); }
+}
+
+load();
+</script>
+</body>
+</html>

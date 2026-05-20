@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root{
+  --milk:#FDFBF7; --ink:#1C1C1E; --grey:#8E8E93;
+  --green:#1B4D3E; --green-soft:#D4E5DB; --line:#E5E1D6; --card:#FFFFFF;
+  --err:#C0392B;
+}
+*{box-sizing:border-box; font-family:'Inter',-apple-system,system-ui,sans-serif;}
+html,body{margin:0; background:var(--milk); color:var(--ink);}
+.accent{height:5px; background:var(--green);}
+a{color:inherit;}
+
+.wrap{max-width:760px; margin:0 auto; padding:0 24px;}
+.wrap-wide{max-width:960px; margin:0 auto; padding:0 24px;}
+
+header.bd{border-bottom:1px solid var(--line); padding:28px 0 20px;}
+.eyebrow{letter-spacing:.22em; color:var(--green); font-size:12px; font-weight:700;}
+.brandrow{display:flex; align-items:baseline; gap:12px; margin-top:4px; flex-wrap:wrap;}
+.brandrow h1{font-size:30px; font-weight:700; letter-spacing:-.02em; margin:0;}
+.brandrow .tag{color:var(--grey); font-size:14px;}
+
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px;}
+.muted{color:var(--grey);}
+.btn{border:none; cursor:pointer; font-weight:600; border-radius:12px; transition:all .15s; font-size:14px;}
+.btn-green{background:var(--green); color:#fff; padding:14px; width:100%;}
+.btn-ghost{background:#fff; border:1px solid var(--line); color:var(--ink); padding:10px 16px;}
+.btn-green:hover{filter:brightness(1.08);}
+
+input,textarea,select{font-size:14px; color:var(--ink); background:#fff; border:1px solid var(--line);
+  border-radius:10px; padding:11px 14px; width:100%; outline:none;}
+input:focus,textarea:focus,select:focus{border-color:var(--green); box-shadow:0 0 0 3px rgba(27,77,62,.10);}
+textarea{min-height:110px; resize:vertical;}
+select{appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238E8E93' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>"); background-repeat:no-repeat; background-position:right 12px center; padding-right:38px;}
+::placeholder{color:var(--grey);}
+
+footer.bd{text-align:center; padding:32px 0; color:var(--grey); font-size:12px; border-top:1px solid var(--line); margin-top:8px;}
+footer.bd b{color:var(--green); font-weight:600;}
+
+.fade{animation:fade .5s ease both;}
+@keyframes fade{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
