@@ -99,7 +99,7 @@ let DATA = [], filter = "All", query = "";
 
 const fmt = (iso) => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
 const wa = (p) => "https://wa.me/" + (p||"").replace(/[^0-9]/g,"");
-const esc = (s) => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc = (s) => (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 async function load(){
   const r = await fetch("/api/responses");
@@ -211,7 +211,8 @@ function exportPdf(idx){
   const s = DATA[idx];
   if (!s) return;
   const m = STATUSES[s.status]||STATUSES["New"];
-  const lineBreaks = (value) => esc(value).replace(/\n/g, "<br>");
+  const lineBreaks = (value) => esc(String(value)).replace(/\n/g, "<br>");
+  const titleName = s.name ? esc(s.name) : "BizDoc";
   const qblocks = Q_META.map(([k,label,kind])=>{
     const v = s[k];
     if (!v || (Array.isArray(v) && !v.length)) return "";
@@ -225,7 +226,7 @@ function exportPdf(idx){
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Client Response — ${esc(s.name)||"BizDoc"}</title>
+  <title>Client Response — ${titleName}</title>
   <link rel="stylesheet" href="/assets/brand.css" />
   <style>
     body{background:#fff; color:var(--ink);}
@@ -246,6 +247,9 @@ function exportPdf(idx){
 <body>
   <div class="accent"></div>
   <div class="wrap">
+    <div class="no-print" style="text-align:right; margin-bottom:16px;">
+      <button class="btn btn-ghost" onclick="window.close()" style="padding:8px 14px;">Close</button>
+    </div>
     <div class="eyebrow">HAMZURY BUSINESS INSTITUTE</div>
     <div class="brandrow"><h1>BizDoc</h1><span class="tag">Client Response</span></div>
     <div class="card" style="margin-top:18px;">
@@ -271,7 +275,6 @@ function exportPdf(idx){
   win.document.open();
   win.document.write(html);
   win.document.close();
-  win.onafterprint = () => win.close();
   setTimeout(() => { win.focus(); win.print(); }, 300);
 }
 
