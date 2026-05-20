@@ -224,7 +224,7 @@ function exportPdf(idx){
   if (!s) return;
   const m = STATUSES[s.status]||STATUSES["New"];
   const lineBreaks = (value) => esc(String(value)).replace(/\n/g, "<br>");
-  const titleName = s.name ? esc(s.name) : "BizDoc";
+  const clientName = s.name ? esc(s.name) : "BizDoc";
   const qblocks = Q_META.map(([k,label,kind])=>{
     const v = s[k];
     if (!v || (Array.isArray(v) && !v.length)) return "";
@@ -238,7 +238,7 @@ function exportPdf(idx){
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Client Response — ${titleName}</title>
+  <title>Client Response — ${clientName}</title>
   <link rel="stylesheet" href="/assets/brand.css" />
   <style>
     body{background:#fff; color:var(--ink);}
@@ -284,10 +284,11 @@ function exportPdf(idx){
 </html>`;
   const exportWindowWidth = 960;
   const exportWindowHeight = 720;
-  const blobRevokeDelayMs = 60000; // allow time for the new window to load the blob URL
+  const blobRevokeDelayMs = 10000; // allow time for the new window to load the blob URL
   const blob = new Blob([html], { type: "text/html" });
   const url = URL.createObjectURL(blob);
-  const win = window.open(url, "_blank", `width=${exportWindowWidth},height=${exportWindowHeight}`);
+  const exportWindowFeatures = `width=${exportWindowWidth},height=${exportWindowHeight},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`;
+  const win = window.open(url, "_blank", exportWindowFeatures);
   if (!win) {
     URL.revokeObjectURL(url);
     showToast("Please allow popups to export the PDF.");
