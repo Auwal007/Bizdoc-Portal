@@ -98,6 +98,10 @@ const Q_META = [
   ["q8","What to process","multi"],
 ];
 let DATA = [], filter = "All", query = "";
+const EXPORT_WINDOW_WIDTH = 960;
+const EXPORT_WINDOW_HEIGHT = 720;
+const EXPORT_BLOB_REVOKE_DELAY_MS = 2000; // allow time for the new window to load the blob URL
+const EXPORT_FALLBACK_NAME = "Unnamed Client";
 
 const fmt = (iso) => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
 const wa = (p) => "https://wa.me/" + (p||"").replace(/[^0-9]/g,"");
@@ -224,7 +228,7 @@ function exportPdf(idx){
   if (!s) return;
   const m = STATUSES[s.status]||STATUSES["New"];
   const lineBreaks = (value) => esc(String(value)).replace(/\n/g, "<br>");
-  const clientName = s.name ? esc(s.name) : "BizDoc";
+  const clientName = s.name ? esc(s.name) : esc(EXPORT_FALLBACK_NAME);
   const qblocks = Q_META.map(([k,label,kind])=>{
     const v = s[k];
     if (!v || (Array.isArray(v) && !v.length)) return "";
@@ -268,7 +272,7 @@ function exportPdf(idx){
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
         <div>
           <div class="label" style="margin-top:0;">CLIENT</div>
-          <div style="font-size:20px; font-weight:700; margin-top:6px;">${esc(s.name)||"—"}</div>
+          <div style="font-size:20px; font-weight:700; margin-top:6px;">${clientName}</div>
           <div class="muted" style="margin-top:4px;">${esc(s.phone)||"—"}</div>
         </div>
         <span class="pill" style="background:${m.bg}; color:${m.color};">${esc(s.status||"New")}</span>
@@ -282,12 +286,9 @@ function exportPdf(idx){
   </div>
 </body>
 </html>`;
-  const exportWindowWidth = 960;
-  const exportWindowHeight = 720;
-  const blobRevokeDelayMs = 2000; // allow time for the new window to load the blob URL
   const blob = new Blob([html], { type: "text/html" });
   const url = URL.createObjectURL(blob);
-  const exportWindowFeatures = `width=${exportWindowWidth},height=${exportWindowHeight},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`;
+  const exportWindowFeatures = `width=${EXPORT_WINDOW_WIDTH},height=${EXPORT_WINDOW_HEIGHT},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`;
   const win = window.open(url, "_blank", exportWindowFeatures);
   if (!win) {
     URL.revokeObjectURL(url);
@@ -295,7 +296,7 @@ function exportPdf(idx){
     return;
   }
   const printNow = () => { win.focus(); win.print(); };
-  setTimeout(() => URL.revokeObjectURL(url), blobRevokeDelayMs);
+  setTimeout(() => URL.revokeObjectURL(url), EXPORT_BLOB_REVOKE_DELAY_MS);
   try {
     if (win.document.readyState === "complete") {
       printNow();
