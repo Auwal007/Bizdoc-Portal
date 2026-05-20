@@ -192,7 +192,8 @@ function openDrawer(idx){
     <div class="seg">${seg}</div>
     <div class="qblock"><div class="h">SUBMITTED</div><p style="font-size:14px; margin:6px 0 0;">${fmt(s.createdAt)}</p></div>
     ${qhtml}
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:26px;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:8px; margin-top:26px;">
+      <button class="btn btn-ghost" onclick="exportPdf(${idx})" style="padding:12px;">Export PDF</button>
       <a class="btn" href="tel:${esc(s.phone)}" style="background:#fff; border:1px solid var(--green); color:var(--green); padding:12px; text-align:center; text-decoration:none;">Call</a>
       <a class="btn btn-green" href="${wa(s.phone)}" target="_blank" rel="noreferrer" style="padding:12px; text-align:center; text-decoration:none;">WhatsApp</a>
     </div>`;
@@ -204,6 +205,74 @@ document.getElementById("drawerBg").onclick = closeDrawer;
 async function setStatus(id, status){
   const r = await fetch(`/api/responses/${id}/status`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({status}) });
   if (r.ok){ const s = DATA.find(x=>x.id===id); if (s) s.status = status; render(); openDrawer(DATA.indexOf(DATA.find(x=>x.id===id))); }
+}
+
+function exportPdf(idx){
+  const s = DATA[idx];
+  if (!s) return;
+  const m = STATUSES[s.status]||STATUSES["New"];
+  const lineBreaks = (value) => esc(value).replace(/\n/g, "<br>");
+  const qblocks = Q_META.map(([k,label,kind])=>{
+    const v = s[k];
+    if (!v || (Array.isArray(v) && !v.length)) return "";
+    const answer = Array.isArray(v)
+      ? `<ul class="list">${v.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`
+      : `<div class="answer">${lineBreaks(v)}</div>`;
+    return `<div class="section"><div class="label">${esc(label)}</div>${answer}</div>`;
+  }).join("");
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Client Response — ${esc(s.name)||"BizDoc"}</title>
+  <link rel="stylesheet" href="/assets/brand.css" />
+  <style>
+    body{background:#fff; color:var(--ink);}
+    .wrap{max-width:760px; margin:0 auto; padding:32px 24px;}
+    .card{padding:20px;}
+    .label{font-size:11px; font-weight:700; letter-spacing:.18em; color:var(--grey); margin-top:18px;}
+    .answer{margin-top:8px; font-size:14px; line-height:1.6;}
+    .section{margin-top:8px;}
+    .list{margin:8px 0 0 18px; padding:0; font-size:14px;}
+    .list li{margin-bottom:6px;}
+    .pill{padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; white-space:nowrap; display:inline-block;}
+    @media print{
+      body{background:#fff;}
+      .no-print{display:none;}
+    }
+  </style>
+</head>
+<body>
+  <div class="accent"></div>
+  <div class="wrap">
+    <div class="eyebrow">HAMZURY BUSINESS INSTITUTE</div>
+    <div class="brandrow"><h1>BizDoc</h1><span class="tag">Client Response</span></div>
+    <div class="card" style="margin-top:18px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <div>
+          <div class="label" style="margin-top:0;">CLIENT</div>
+          <div style="font-size:20px; font-weight:700; margin-top:6px;">${esc(s.name)||"—"}</div>
+          <div class="muted" style="margin-top:4px;">${esc(s.phone)||"—"}</div>
+        </div>
+        <span class="pill" style="background:${m.bg}; color:${m.color};">${esc(s.status||"New")}</span>
+      </div>
+      <div class="section">
+        <div class="label">SUBMITTED</div>
+        <div class="answer">${fmt(s.createdAt)}</div>
+      </div>
+      ${qblocks}
+    </div>
+  </div>
+</body>
+</html>`;
+  const win = window.open("", "_blank", "width=960,height=720");
+  if (!win) { alert("Please allow popups to export the PDF."); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.onafterprint = () => win.close();
+  setTimeout(() => { win.focus(); win.print(); }, 300);
 }
 
 load();
