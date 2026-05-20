@@ -282,17 +282,19 @@ function exportPdf(idx){
   </div>
 </body>
 </html>`;
+  const exportWindowWidth = 960;
+  const exportWindowHeight = 720;
+  const blobRevokeDelayMs = 60000; // allow time for the new window to load the blob URL
   const blob = new Blob([html], { type: "text/html" });
   const url = URL.createObjectURL(blob);
-  const win = window.open(url, "_blank", "width=960,height=720");
+  const win = window.open(url, "_blank", `width=${exportWindowWidth},height=${exportWindowHeight}`);
   if (!win) {
     URL.revokeObjectURL(url);
     showToast("Please allow popups to export the PDF.");
     return;
   }
-  const blobUrlRevokeDelayMs = 60000;
   const printNow = () => { win.focus(); win.print(); };
-  setTimeout(() => URL.revokeObjectURL(url), blobUrlRevokeDelayMs);
+  setTimeout(() => URL.revokeObjectURL(url), blobRevokeDelayMs);
   if (win.document.readyState === "complete") {
     printNow();
   } else {
