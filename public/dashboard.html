@@ -105,7 +105,7 @@ const EXPORT_FALLBACK_NAME = "Unnamed Client";
 
 const fmt = (iso) => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
 const wa = (p) => "https://wa.me/" + (p||"").replace(/[^0-9]/g,"");
-const esc = (s) => (s||"").replace(/[&<>"'\/]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;","/":"&#47;"}[c]));
+const esc = (s) => (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const showToast = (msg) => {
   const el = document.createElement("div");
   el.className = "toast";
@@ -228,7 +228,7 @@ function exportPdf(idx){
   if (!s) return;
   const m = STATUSES[s.status]||STATUSES["New"];
   const lineBreaks = (value) => esc(String(value)).replace(/\n/g, "<br>");
-  const clientName = s.name ? esc(s.name) : EXPORT_FALLBACK_NAME;
+  const clientName = esc(s.name || EXPORT_FALLBACK_NAME);
   const qblocks = Q_META.map(([k,label,kind])=>{
     const v = s[k];
     if (!v || (Array.isArray(v) && !v.length)) return "";
@@ -295,14 +295,18 @@ function exportPdf(idx){
     showToast("Please allow popups to export the PDF.");
     return;
   }
-  const revokeUrl = () => URL.revokeObjectURL(url);
+  let revokeTimer;
+  const revokeUrl = () => {
+    if (revokeTimer) { clearTimeout(revokeTimer); revokeTimer = null; }
+    URL.revokeObjectURL(url);
+  };
   const printNow = () => {
     if (!win || win.closed) { revokeUrl(); return; }
     win.focus();
     win.print();
     revokeUrl();
   };
-  setTimeout(revokeUrl, EXPORT_BLOB_REVOKE_FALLBACK_MS);
+  revokeTimer = setTimeout(revokeUrl, EXPORT_BLOB_REVOKE_FALLBACK_MS);
   try {
     if (win.document.readyState === "complete") {
       printNow();
