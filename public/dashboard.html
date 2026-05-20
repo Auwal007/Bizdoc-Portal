@@ -106,6 +106,8 @@ const showToast = (msg) => {
   const el = document.createElement("div");
   el.className = "toast";
   el.setAttribute("role","status");
+  el.setAttribute("aria-live","polite");
+  el.setAttribute("aria-atomic","true");
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 4000);
@@ -288,9 +290,14 @@ function exportPdf(idx){
     showToast("Please allow popups to export the PDF.");
     return;
   }
-  const revokeDelayMs = 60000;
-  setTimeout(() => URL.revokeObjectURL(url), revokeDelayMs);
-  win.addEventListener("load", () => { win.focus(); win.print(); }, { once: true });
+  const blobUrlRevokeDelayMs = 60000;
+  const printNow = () => { win.focus(); win.print(); };
+  setTimeout(() => URL.revokeObjectURL(url), blobUrlRevokeDelayMs);
+  if (win.document.readyState === "complete") {
+    printNow();
+  } else {
+    win.addEventListener("load", printNow, { once: true });
+  }
 }
 
 load();
