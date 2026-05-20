@@ -24,6 +24,8 @@
   .row{display:flex; align-items:center; gap:16px; padding:16px; cursor:pointer; margin-bottom:10px; text-align:left; width:100%; background:var(--card); border:1px solid var(--line); border-radius:12px;}
   .row:hover{box-shadow:0 1px 6px rgba(0,0,0,.05);}
   .pill{padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; white-space:nowrap;}
+  .toast{position:fixed; right:22px; bottom:22px; background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px; font-size:13px; box-shadow:0 4px 16px rgba(0,0,0,.08); z-index:90;}
   .drawer-bg{position:fixed; inset:0; background:rgba(28,28,30,.35); display:none; justify-content:flex-end; z-index:50;}
   .drawer{height:100%; width:100%; max-width:440px; background:var(--milk); overflow-y:auto;}
   .drawer .body{padding:24px;}
@@ -100,6 +102,14 @@ let DATA = [], filter = "All", query = "";
 const fmt = (iso) => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
 const wa = (p) => "https://wa.me/" + (p||"").replace(/[^0-9]/g,"");
 const esc = (s) => (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const showToast = (msg) => {
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.setAttribute("role","status");
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+};
 
 async function load(){
   const r = await fetch("/api/responses");
@@ -270,12 +280,17 @@ function exportPdf(idx){
   </div>
 </body>
 </html>`;
-  const win = window.open("", "_blank", "width=960,height=720");
-  if (!win) { alert("Please allow popups to export the PDF."); return; }
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-  setTimeout(() => { win.focus(); win.print(); }, 300);
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, "_blank", "width=960,height=720");
+  if (!win) {
+    URL.revokeObjectURL(url);
+    showToast("Please allow popups to export the PDF.");
+    return;
+  }
+  const revokeDelayMs = 60000;
+  setTimeout(() => URL.revokeObjectURL(url), revokeDelayMs);
+  win.addEventListener("load", () => { win.focus(); win.print(); }, { once: true });
 }
 
 load();
