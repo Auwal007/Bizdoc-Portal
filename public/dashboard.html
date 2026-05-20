@@ -284,7 +284,7 @@ function exportPdf(idx){
 </html>`;
   const exportWindowWidth = 960;
   const exportWindowHeight = 720;
-  const blobRevokeDelayMs = 10000; // allow time for the new window to load the blob URL
+  const blobRevokeDelayMs = 2000; // allow time for the new window to load the blob URL
   const blob = new Blob([html], { type: "text/html" });
   const url = URL.createObjectURL(blob);
   const exportWindowFeatures = `width=${exportWindowWidth},height=${exportWindowHeight},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`;
@@ -296,9 +296,13 @@ function exportPdf(idx){
   }
   const printNow = () => { win.focus(); win.print(); };
   setTimeout(() => URL.revokeObjectURL(url), blobRevokeDelayMs);
-  if (win.document.readyState === "complete") {
-    printNow();
-  } else {
+  try {
+    if (win.document.readyState === "complete") {
+      printNow();
+    } else {
+      win.addEventListener("load", printNow, { once: true });
+    }
+  } catch {
     win.addEventListener("load", printNow, { once: true });
   }
 }
