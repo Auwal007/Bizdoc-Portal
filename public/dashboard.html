@@ -24,6 +24,8 @@
   .row{display:flex; align-items:center; gap:16px; padding:16px; cursor:pointer; margin-bottom:10px; text-align:left; width:100%; background:var(--card); border:1px solid var(--line); border-radius:12px;}
   .row:hover{box-shadow:0 1px 6px rgba(0,0,0,.05);}
   .pill{padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; white-space:nowrap;}
+  .toast{position:fixed; right:22px; bottom:22px; background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px; font-size:13px; box-shadow:0 4px 16px rgba(0,0,0,.08); z-index:90;}
   .drawer-bg{position:fixed; inset:0; background:rgba(28,28,30,.35); display:none; justify-content:flex-end; z-index:50;}
   .drawer{height:100%; width:100%; max-width:440px; background:var(--milk); overflow-y:auto;}
   .drawer .body{padding:24px;}
@@ -96,10 +98,24 @@ const Q_META = [
   ["q8","What to process","multi"],
 ];
 let DATA = [], filter = "All", query = "";
+const EXPORT_WINDOW_WIDTH = 960;
+const EXPORT_WINDOW_HEIGHT = 720;
+const EXPORT_BLOB_REVOKE_FALLBACK_MS = 10000; // fallback cleanup if the export window never finishes loading
+const EXPORT_FALLBACK_NAME = "Unnamed Client";
 
 const fmt = (iso) => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
 const wa = (p) => "https://wa.me/" + (p||"").replace(/[^0-9]/g,"");
-const esc = (s) => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc = (s) => (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const showToast = (msg) => {
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.setAttribute("role","status");
+  el.setAttribute("aria-live","polite");
+  el.setAttribute("aria-atomic","true");
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+};
 
 async function load(){
   const r = await fetch("/api/responses");
@@ -192,7 +208,8 @@ function openDrawer(idx){
     <div class="seg">${seg}</div>
     <div class="qblock"><div class="h">SUBMITTED</div><p style="font-size:14px; margin:6px 0 0;">${fmt(s.createdAt)}</p></div>
     ${qhtml}
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:26px;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:8px; margin-top:26px;">
+      <button class="btn btn-ghost" onclick="exportPdf(${idx})" style="padding:12px;">Export PDF</button>
       <a class="btn" href="tel:${esc(s.phone)}" style="background:#fff; border:1px solid var(--green); color:var(--green); padding:12px; text-align:center; text-decoration:none;">Call</a>
       <a class="btn btn-green" href="${wa(s.phone)}" target="_blank" rel="noreferrer" style="padding:12px; text-align:center; text-decoration:none;">WhatsApp</a>
     </div>`;
@@ -204,6 +221,101 @@ document.getElementById("drawerBg").onclick = closeDrawer;
 async function setStatus(id, status){
   const r = await fetch(`/api/responses/${id}/status`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({status}) });
   if (r.ok){ const s = DATA.find(x=>x.id===id); if (s) s.status = status; render(); openDrawer(DATA.indexOf(DATA.find(x=>x.id===id))); }
+}
+
+function exportPdf(idx){
+  const s = DATA[idx];
+  if (!s) return;
+  const m = STATUSES[s.status]||STATUSES["New"];
+  const lineBreaks = (value) => esc(String(value)).replace(/\n/g, "<br>");
+  const clientName = esc(s.name || EXPORT_FALLBACK_NAME);
+  const qblocks = Q_META.map(([k,label,kind])=>{
+    const v = s[k];
+    if (!v || (Array.isArray(v) && !v.length)) return "";
+    const answer = Array.isArray(v)
+      ? `<ul class="list">${v.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`
+      : `<div class="answer">${lineBreaks(v)}</div>`;
+    return `<div class="section"><div class="label">${esc(label)}</div>${answer}</div>`;
+  }).join("");
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Client Response — ${clientName}</title>
+  <link rel="stylesheet" href="/assets/brand.css" />
+  <style>
+    body{background:#fff; color:var(--ink);}
+    .wrap{max-width:760px; margin:0 auto; padding:32px 24px;}
+    .card{padding:20px;}
+    .label{font-size:11px; font-weight:700; letter-spacing:.18em; color:var(--grey); margin-top:18px;}
+    .answer{margin-top:8px; font-size:14px; line-height:1.6;}
+    .section{margin-top:8px;}
+    .list{margin:8px 0 0 18px; padding:0; font-size:14px;}
+    .list li{margin-bottom:6px;}
+    .pill{padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; white-space:nowrap; display:inline-block;}
+    @media print{
+      body{background:#fff;}
+      .no-print{display:none;}
+    }
+  </style>
+</head>
+<body>
+  <div class="accent"></div>
+  <div class="wrap">
+    <div class="no-print" style="text-align:right; margin-bottom:16px;">
+      <button class="btn btn-ghost" onclick="window.close()" style="padding:8px 14px;">Close</button>
+    </div>
+    <div class="eyebrow">HAMZURY BUSINESS INSTITUTE</div>
+    <div class="brandrow"><h1>BizDoc</h1><span class="tag">Client Response</span></div>
+    <div class="card" style="margin-top:18px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <div>
+          <div class="label" style="margin-top:0;">CLIENT</div>
+          <div style="font-size:20px; font-weight:700; margin-top:6px;">${clientName}</div>
+          <div class="muted" style="margin-top:4px;">${esc(s.phone)||"—"}</div>
+        </div>
+        <span class="pill" style="background:${m.bg}; color:${m.color};">${esc(s.status||"New")}</span>
+      </div>
+      <div class="section">
+        <div class="label">SUBMITTED</div>
+        <div class="answer">${fmt(s.createdAt)}</div>
+      </div>
+      ${qblocks}
+    </div>
+  </div>
+</body>
+</html>`;
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const exportWindowFeatures = `width=${EXPORT_WINDOW_WIDTH},height=${EXPORT_WINDOW_HEIGHT},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`;
+  const win = window.open(url, "_blank", exportWindowFeatures);
+  if (!win) {
+    URL.revokeObjectURL(url);
+    showToast("Please allow popups to export the PDF.");
+    return;
+  }
+  let revokeTimer;
+  const revokeUrl = () => {
+    if (revokeTimer) { clearTimeout(revokeTimer); revokeTimer = null; }
+    URL.revokeObjectURL(url);
+  };
+  const printNow = () => {
+    if (!win || win.closed) { revokeUrl(); return; }
+    win.focus();
+    win.print();
+    revokeUrl();
+  };
+  revokeTimer = setTimeout(revokeUrl, EXPORT_BLOB_REVOKE_FALLBACK_MS);
+  try {
+    if (win.document.readyState === "complete") {
+      printNow();
+    } else {
+      win.addEventListener("load", printNow, { once: true });
+    }
+  } catch {
+    win.addEventListener("load", printNow, { once: true });
+  }
 }
 
 load();
